@@ -3,9 +3,6 @@
 title: "Median House Value Analysis and Prediction"
 author: "Aashay Sharma"
 date: "15/08/2020"
-output: 
-  html_document:
-        keep_md: true
 ---
 
 ## Objective 
