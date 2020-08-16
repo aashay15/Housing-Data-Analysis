@@ -1,0 +1,264 @@
+---
+title: "Median House Value Analysis and Prediction"
+author: "Aashay Sharma"
+date: "15/08/2020"
+output: 
+  html_document:
+        keep_md: true
+---
+
+## Objective 
+
+#### Here we need to analyse and predict the house value situated in US, by using the data provided. We need to check whether several factors like total number of rooms, or households have any significant corelation with median house prices and after exploratory analysis we need to suggest and apply optimum model for the data for further predictions of the median house prices.
+
+## Data 
+The data can be downloaded from
+[here](https://github.com/ageron/handson-ml2/raw/master/datasets/housing/housing.csv)
+
+## Basic Exploratory Analysis :
+
+### Data Schematic and Summary :
+
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(gridExtra)
+library(caret)
+library(Hmisc)
+library(MASS)
+library(randomForest)
+housing_data <- read.csv("https://github.com/ageron/handson-ml2/raw/master/datasets/housing/housing.csv")
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+head(housing_data)
+
+summary(housing_data)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+housing_data$ocean_proximity <- as.factor(housing_data$ocean_proximity)
+
+housing_data$ocean_proximity <- unclass(housing_data$ocean_proximity)
+
+housing_data$ocean_proximity<- as.factor(housing_data$ocean_proximity)
+```
+
+By looking at the summary we can see that ocean proximity is a factor variable but isn't in the right format, so we will convert is as factor and then unclass it to make use of it in our model.
+factors coded as :
+1. OCEAN
+2. INLAND
+3. ISLAND
+4. NEAR BAY
+5. NEAR ocean
+
+By this plot we can see some correlation among the median income and house value variables this will a lot more clearer after a correlation test.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+melt.data <- melt(housing_data)
+
+ggplot(data = melt.data, aes(x = value)) + 
+    stat_density() + 
+    facet_wrap(~ variable, scales = "free")
+```
+
+#### Correlation Test :
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+print("Correlation of Median House Value and Median Income")
+cor.test(housing_data$median_house_value, housing_data$median_income)[4]
+print("Correlation of Median House Value and Longitude")
+cor.test(housing_data$median_house_value, housing_data$longitude)[4]
+print("Correlation of Median House Value and Latitude")
+cor.test(housing_data$median_house_value, housing_data$latitude)[4]
+print("Correlation of Median House Value and Median Age")
+cor.test(housing_data$median_house_value, housing_data$housing_median_age)[4]
+print("Correlation of Median House Value and Total Rooms")
+cor.test(housing_data$median_house_value, housing_data$total_rooms)[4]
+print("Correlation of Median House Value and Total BedRooms")
+cor.test(housing_data$median_house_value, housing_data$total_bedrooms)[4]
+print("Correlation of Median House Value and Population")
+cor.test(housing_data$median_house_value, housing_data$population)[4]
+print("Correlation of Median House Value and House Holds")
+cor.test(housing_data$median_house_value, housing_data$households)[4]
+```
+Median Income, Median Age and Total Rooms have some higher correlation and will be of benefit to add in our model. Others also add to some information but have a relatively low values of correlation ie; cor(x,y) is close to 0 rather than close to 1 or -1.
+
+By looking at the data I thought transforming some variables would a good option rather than using them directly, by this we can keep the information the data wants us to provide in the manner we want ie; helping the machine learning algorithm to give better results.
+
+So the most sensible thing to do is divide the number_of_bedrooms column with total_number_of_rooms.
+
+Other Transformations can be made but won't make much of a difference.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+print("Correlation of bedrooms/total_rooms and Median House Value")
+cor.test((housing_data$total_bedrooms/housing_data$total_rooms), housing_data$median_house_value)[4]
+housing_data$bed_to_room_ratio <- housing_data$total_bedrooms/housing_data$total_rooms
+```
+
+We improved, as expected!
+
+### Exploratory Plots :
+
+We seen results of correlations test but to get a clear and visual picture of our data we will still plot some scatter plots as well as using LAT and LONG we will plot a density scatter plot to check in which portion of the map does the median prices go up.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+a <- ggplot(data = housing_data, aes(y = median_house_value, x = median_income)) + geom_point()
+
+b <- ggplot(data = housing_data, aes(y = median_house_value, x = housing_median_age)) + geom_point()
+
+c <- ggplot(data = housing_data, aes(y = median_house_value, x = bed_to_room_ratio)) + geom_point()
+
+d <- ggplot(data = housing_data, aes(y = median_house_value, x = total_rooms)) + geom_point()
+
+grid.arrange(a,b,c,d, nrow = 2, ncol = 2)
+```
+
+We can see the variations and as well as difference in the total_rooms and bed_to_room_ratio.
+
+Now with the help of the Lattitudes and Longitudes provided in the data we can plot a map like figure and see where are the median_house_values greater using alpha 
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot() + geom_point(data =  housing_data, aes(x = longitude, y = latitude), color = "green", alpha = 0.2)
+```
+
+Denser the Green Color more are the values concentrated, and by this figure we can say that the houses near bay have high median values relative to others categories.
+
+But to strongly proove our point we will plot a boxplot.
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(data = housing_data, aes(y = median_house_value, x = ocean_proximity)) + geom_boxplot()
+```
+We can clearly see that in general Houses with ISLAND as ocean proximity have the highest median values compared to others, while the second highest values are of NEAR BAY, NEAR OCEAN and OCEAN proximities, these values are close and median values which are the lowest falls in the INLAND proximities with lot of outliers, which supports the theory that inland houses vary a lot in prices and other factor govern them.
+
+## MODEL BUILDING :
+
+Before Building and selecting model I will subset the variables of interest and will only work on that.
+
+And Using the caret package we will split the dataset into train and test set and will also use caret for model building.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+subset_data <- subset(housing_data, select = c(latitude, longitude, median_income, housing_median_age, bed_to_room_ratio, ocean_proximity, median_house_value))
+
+head(subset_data)
+```
+
+After subsetting the data next thing we have to deal with is missing values, here I will omit the na values during model training and while testing i will clean the test set by removing the na instances.
+
+```{r, message=FALSE, warning=FALSE}
+index <- createDataPartition(subset_data$median_house_value, p = 0.8, list = FALSE)
+train <- subset_data[index,]
+test <- subset_data[-index,]
+dim(train)
+dim(test)
+```
+
+Now that we have a train and test set we will clean both of them separately, we can impute the missing values or we can just omit them.
+
+```{r, message=FALSE, warning=FALSE}
+test <- na.omit(test)
+dim(test)
+```
+
+### MODEL 1 Basic Linear Model (Linear Regression) :
+
+```{r, message=FALSE, warning=FALSE}
+
+lm_model_1 <- lm(median_house_value ~ . , data = train, na.action = na.omit)
+
+summary(lm_model_1)
+
+model_1_predict <- predict(newdata = test, lm_model_1)
+
+test_set_error_1 <- mean((model_1_predict - test$median_house_value)^2)
+
+test_set_error_1 <- sqrt(test_set_error_1)
+
+test_set_error_1
+
+```
+
+By applying LM model we get train set error of 70,810/- while a test set error of 73,131/- 
+
+The model did not perform too well and it is clearly a high bias problem.
+
+Residual Plot of Model 1
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+plot(lm_model_1)
+```
+
+By looking at the plots we can infer that the model is not wrong but the relation ship between the data is not fully determined by the variables, the residual are scattered but too much overlaped.
+
+### MODEL 2 Linera Model with quadratic weighted output :
+
+Okay so using the boxcox function from the MASS package we can get an optimum quadratic weight for our data and then we can perform a linear model to see if it has any significant effect.
+
+```{r, message=FALSE, warning=FALSE}
+bc <- boxcox(lm_model_1)
+lambda <- bc$x[which.max(bc$y)]
+lambda
+```
+
+Now lets fit a new linear model after applying the transformation to the output.
+
+```{r, message=FALSE, warning=FALSE}
+z <- (train$median_house_value)^lambda
+
+lm_model_2 <- lm(z ~ . , data = train, na.action = na.omit)
+
+summary(lm_model_2)
+
+model_2_predict <- predict(newdata = test, lm_model_2)
+
+test_set_error_2 <- mean((((model_2_predict)^(1/lambda)) - test$median_house_value)^2)
+
+test_set_error_2 <- sqrt(test_set_error_2)
+
+test_set_error_2
+```
+
+Good improvement relative to model 1 as the RMSE was around 0.2126 (which is for transformed data) and the RSquared that is how much variance or how much the output variable is explained by the given features is also raised to 94.75% which is around 33% greater than model 1. And the RMSE on the test set is around 30,000 which is 40,000 less than model 1. 
+
+Residual Plot for model 2 :
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+plot(lm_model_2)
+```
+
+### MODEL 3 Regression Forest : 
+
+Trying regression forest is also a good option, as it is one of most widely used algorithm in machine learning community and often performs well in many scenarios, testing it would be a good option.
+
+```{r, message=FALSE, warning=FALSE}
+rf_model_3 <- train(median_house_value ~ . , method = "rf", data = train, na.action = na.omit, ntree = 35) 
+```
+
+```{r, message=FALSE, warning=FALSE}
+rf_model_3
+
+model_3_predict <- predict(newdata = test, rf_model_3)
+
+test_set_error_3 <- mean((model_3_predict - test$median_house_value)^2)
+
+test_set_error_3 <- sqrt(test_set_error_3)
+
+test_set_error_3
+```
+
+As we can infer that the rf model worked better than simple LM but it was less efficient than the transformed LM model.
+
+## Final Conclusion :
+
+By performing the above analysis I can say that the housing data has a weak relation with the provided variables, but there are some relations as we observed them during exploratory analysis. RF model would have worked better with grid search method and trying other hyper paramters, like different number of trees and mtry values.
+
+As we observed that model 2 performed better than both of the other proposed models, and thus we can prefer model 2 with lambda = 0.181 (approx).
+
+This is a normal test report and there are many other ways and many other models which can be used for better prediction.
+
+## Ways to improve :
+
+- Grid Search Method can be used to test different hyper parameters for Regression Forest (but it wont have highly significant effect)
+
+- GBM or XGBoost can be used for better perfomance of weak models, XGboost works exceptionally best in competitions and often used for best accuracy, but it is computer intensive and takes a while to train. 
+ And the factor which stopped me to use XGBOOST in this particular problem was, the sensitivity of the algorithm against outliers.
+ XGboost is sensitive to outliers and thus can lead to extreme overfitting, and while exploratory analysis we found that the data is widely spread as median house value depends on many factors practically and thus provided with more data and more practically collected data we can give a better prediction and better analysis of the data.
