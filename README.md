@@ -35,7 +35,7 @@ NA_VALUES     : OMITTED
 ![Test Set Error and Predicted Example Sample Output]
 (https://github.com/aashay15/Housing-Data-Analysis/screenshot/Screenshot2020-08-17at9.08.13AM.png)
 
-![alt text](https://github.com/[aashay15]/[Housing-Data-Analysis]/blob/[main]/screenshot/Screenshot2020-08-17at9.07.48AM.png?raw=true)
+![alt text](https://github.com/[aashay15]/[Housing-Data-Analysis]/blob/[master]/screenshot/Screenshot2020-08-17at9.07.48AM.png?raw=true)
 
 
 
