@@ -2,9 +2,6 @@
 title: "ReadMe"
 author: "Aashay Sharma"
 date: "17/08/2020"
-output: 
-  html_document:
-        keed_md: true
 ---
 
 ## Objective 
@@ -37,5 +34,8 @@ NA_VALUES     : OMITTED
 (https://github.com/aashay15/Housing-Data-Analysis/screenshot/Screenshot2020-08-17at9.07.48AM.png)
 ![Test Set Error and Predicted Example Sample Output]
 (https://github.com/aashay15/Housing-Data-Analysis/screenshot/Screenshot2020-08-17at9.08.13AM.png)
+
+![alt text](https://github.com/[aashay15]/[Housing-Data-Analysis]/blob/[main]/screenshot/Screenshot2020-08-17at9.07.48AM.png?raw=true)
+
 
 
