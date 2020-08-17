@@ -34,8 +34,8 @@ NA_VALUES     : OMITTED
 ## Results :
 
 ![Train Set and Validation Set Error]
-(https://github.com/aashay15/Housing-Data-Analysis/screenshot/Screenshot 2020-08-17 at 9.07.48 AM.png)
+(https://github.com/aashay15/Housing-Data-Analysis/screenshot/Screenshot2020-08-17at9.07.48AM.png)
 ![Test Set Error and Predicted Example Sample Output]
-(https://github.com/aashay15/Housing-Data-Analysis/screenshot/Screenshot 2020-08-17 at 9.08.13 AM.png)
+(https://github.com/aashay15/Housing-Data-Analysis/screenshot/Screenshot2020-08-17at9.08.13AM.png)
 
 
