@@ -18,24 +18,26 @@ The data can be downloaded from
 
 #### NN Architecture:
 
-   INPUT  LAYER RELU     120 UNITS
-1# HIDDEN LAYER SOFTPLUS 60  UNITS
-2# HIDDEN LAYER SOFTPLUS 30  UNITS
-3# OUTPUT LAYER SOFTPLUS 1   UNIT
+   INPUT  LAYER RELU     128 UNITS.     
+1# HIDDEN LAYER RELU      64 UNITS.  
+2# HIDDEN LAYER RELU      32 UNITS. 
+3# OUTPUT LAYER            1   UNIT (regression problem so linear output ). 
 
-OPTIIMIZER    : RMS PROP
-LEARNING RATE : 0.001
-LOSS FUNCTION : ROOT_MEAN_SQUARED
-NA_VALUES     : OMITTED
+OPTIIMIZER    : RMS PROP. 
+LEARNING RATE : 0.001. 
+LOSS FUNCTION : Mean Squared Error. 
+EVALUATION    : Mean Absolute Error. 
+NA_VALUES     : OMITTED. 
 
 ## Results :
 
-![Train Set and Validation Set Error]
-(https://github.com/aashay15/Housing-Data-Analysis/screenshot/Screenshot2020-08-17at9.07.48AM.png)
-![Test Set Error and Predicted Example Sample Output]
-(https://github.com/aashay15/Housing-Data-Analysis/screenshot/Screenshot2020-08-17at9.08.13AM.png)
+The below errors are the errors after training the model on normalized data rather than original data, as the orgininal data was very much variate in terms of ditribution as well as mean and so normalization was a good option in this particular problem. 
 
-![alt text](https://github.com/[aashay15]/[Housing-Data-Analysis]/blob/[master]/screenshot/Screenshot2020-08-17at9.07.48AM.png?raw=true)
+TRAIN SET ERROR      : around 0.2901. 
+VALIDATION SET ERROR : around 0.3101. 
+TEST SET ERROR       : around 0.3208.   
+
+The model does not overfit a lot and thus there is no significant problem from high variance and the model predictions are off by around $30,000 (plus or minus) and so it is more of a bias problem but that too can be assumed as a unneccesary issue as house values depend on many much properties like crime rate in that particular area, surroundings, Builder or company brand by which the house was built and much more which are not included in this particular data set and thus it limits our observations, but with the given data we can still make our predictions using this model (with some real world complications and errors). 
 
 
 
