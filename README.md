@@ -21,19 +21,19 @@ The data can be downloaded from
    INPUT  LAYER RELU     128 UNITS.     
 1# HIDDEN LAYER RELU      64 UNITS.  
 2# HIDDEN LAYER RELU      32 UNITS. 
-3# OUTPUT LAYER            1   UNIT (regression problem so linear output ). 
+3# OUTPUT LAYER            1 UNIT (regression problem so linear output ). 
 
-OPTIIMIZER    : RMS PROP. 
-LEARNING RATE : 0.001. 
-LOSS FUNCTION : Mean Squared Error. 
-EVALUATION    : Mean Absolute Error. 
-NA_VALUES     : OMITTED. 
+OPTIIMIZER    : RMS PROP.  
+LEARNING RATE : 0.001.  
+LOSS FUNCTION : Mean Squared Error.  
+EVALUATION    : Mean Absolute Error.  
+NA_VALUES     : OMITTED.  
 
 ## Results :
 
 The below errors are the errors after training the model on normalized data rather than original data, as the orgininal data was very much variate in terms of ditribution as well as mean and so normalization was a good option in this particular problem. 
 
-TRAIN SET ERROR      : around 0.2901. 
+TRAIN SET ERROR      : around 0.2901.  
 VALIDATION SET ERROR : around 0.3101. 
 TEST SET ERROR       : around 0.3208.   
 
